@@ -1,120 +1,103 @@
--- GOD UNOTHILES6 HUB V2.0: ALL SEAS SUPPORT + PRO UI (BY GEMINI)
+-- GOD UNOTHILES6 HUB V3.4 - (THÔNG BÁO XẾP HÀNG, KHÔNG CHE NHAU)
+if not table.find({2753915549, 4442272183, 7449423635, 994732206}, game.PlaceId) then return end
+
 local player = game.Players.LocalPlayer
-local mouse = player:GetMouse()
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
--- 1. KIỂM TRA ID CẢ 3 SEA (SEA 1, 2, 3)
-local seaIDs = {2753915549, 4442272183, 7449423635, 994732206}
-if not table.find(seaIDs, game.PlaceId) then 
-    print("Script khong ho tro ID game nay: " .. game.PlaceId)
-    return 
-end
-
--- Trạng thái tính năng
-_G.HakiE = false
-_G.AutoChest = false
-_G.SuperInvis = false
-local lastTeleport = 0
-
--- 2. HỆ THỐNG THÔNG BÁO TRÁI MỚI (3 GIÂY)
-local function notifyFruit(name)
-    local notice = Instance.new("ScreenGui", player.PlayerGui)
-    local txt = Instance.new("TextLabel", notice)
-    txt.Size = UDim2.new(1, 0, 0.2, 0)
-    txt.Position = UDim2.new(0, 0, 0.1, 0)
-    txt.Text = "🌟 PHÁT HIỆN: " .. name .. " 🌟"
-    txt.TextColor3 = Color3.new(1, 1, 0)
-    txt.TextScaled = true
-    txt.BackgroundTransparency = 1
-    txt.Font = Enum.Font.SourceSansBold
-    task.delay(3, function() notice:Destroy() end)
-end
-
-workspace.ChildAdded:Connect(function(child)
-    if child.Name:find("Fruit") or child.Name:find("Physical") then
-        notifyFruit(child.Name)
-    end
-end)
-
--- 3. GIAO DIỆN MENU (LINK ẢNH AVATAR CỦA BỐ)
 local sg = Instance.new("ScreenGui", player.PlayerGui)
-sg.Name = "GodUnothiles6_V20"
+sg.Name = "GodHub_V34"
 
-local iconOpen = Instance.new("ImageButton", sg)
-iconOpen.Size = UDim2.new(0, 60, 0, 60)
-iconOpen.Position = UDim2.new(0, 10, 0.5, -30)
-iconOpen.Image = "https://i.postimg.cc/sDb66DZ8/avater.jpg"
-iconOpen.BackgroundTransparency = 1
+-- 1. KHUNG CHỨA THÔNG BÁO (XẾP HÀNG TỰ ĐỘNG)
+local notifyHolder = Instance.new("Frame", sg)
+notifyHolder.Size = UDim2.new(0, 250, 0, 300)
+notifyHolder.Position = UDim2.new(0.5, -125, 0.05, 0) -- Hiện ở giữa phía trên
+notifyHolder.BackgroundTransparency = 1
 
-local mainFrame = Instance.new("Frame", sg)
-mainFrame.Size = UDim2.new(0, 200, 0, 220)
-mainFrame.Position = UDim2.new(0, 80, 0.5, -110)
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BorderSizePixel = 2
-mainFrame.Visible = false
+local layout = Instance.new("UIListLayout", notifyHolder)
+layout.Padding = UDim.new(0, 5) -- Khoảng cách 5px giữa các dòng
+layout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local titleBar = Instance.new("Frame", mainFrame)
-titleBar.Size = UDim2.new(1, 0, 0, 30)
-titleBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-
-local titleText = Instance.new("TextLabel", titleBar)
-titleText.Text = "GOD HUB V2.0"
-titleText.Size = UDim2.new(0.6, 0, 1, 0)
-titleText.TextColor3 = Color3.new(1, 1, 1)
-titleText.BackgroundTransparency = 1
-
-local hideBtn = Instance.new("TextButton", titleBar)
-hideBtn.Text = "-"
-hideBtn.Size = UDim2.new(0.2, 0, 1, 0)
-hideBtn.Position = UDim2.new(0.6, 0, 0, 0)
-hideBtn.TextColor3 = Color3.new(1, 1, 1)
-hideBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-
-local closeBtn = Instance.new("TextButton", titleBar)
-closeBtn.Text = "X"
-closeBtn.Size = UDim2.new(0.2, 0, 1, 0)
-closeBtn.Position = UDim2.new(0.8, 0, 0, 0)
-closeBtn.TextColor3 = Color3.new(1, 1, 1)
-closeBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-
-iconOpen.MouseButton1Click:Connect(function() mainFrame.Visible = true end)
-hideBtn.MouseButton1Click:Connect(function() mainFrame.Visible = false end)
-closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
-
-local function createBtn(name, pos, callback)
-    local btn = Instance.new("TextButton", mainFrame)
-    btn.Text = name .. ": TẮT"
-    btn.Size = UDim2.new(0, 180, 0, 40)
-    btn.Position = pos
-    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    btn.TextColor3 = Color3.new(1, 1, 1)
-    btn.MouseButton1Click:Connect(function()
-        local res = callback()
-        btn.Text = name .. (res and ": BẬT" or ": TẮT")
-        btn.BackgroundColor3 = res and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(45, 45, 45)
+local function notify(msg)
+    local txt = Instance.new("TextLabel", notifyHolder)
+    txt.Size = UDim2.new(1, 0, 0, 40) -- Chiều cao mỗi dòng
+    txt.BackgroundColor3 = Color3.new(0, 0, 0)
+    txt.BackgroundTransparency = 0.4
+    txt.Text = msg
+    txt.TextColor3 = Color3.new(1, 1, 0)
+    txt.TextSize = 20 -- Font size 20 theo ý bố
+    txt.Font = Enum.Font.SourceSansBold
+    txt.TextWrapped = true
+    
+    local corner = Instance.new("UICorner", txt)
+    
+    -- Tự xóa sau 4 giây
+    task.delay(4, function()
+        txt:Destroy()
     end)
 end
 
--- 4. LOGIC TÀNG HÌNH & AUTO RƯƠNG
-local function toggleSuperInvis()
-    _G.SuperInvis = not _G.SuperInvis
-    local char = player.Character
-    if char then
-        for _, v in pairs(char:GetDescendants()) do
-            if v:IsA("BasePart") or v:IsA("Decal") then
-                v.Transparency = _G.SuperInvis and 1 or 0
-            end
-        end
-        if char:FindFirstChild("Humanoid") then
-            char.Humanoid.DisplayDistanceType = _G.SuperInvis and Enum.HumanoidDisplayDistanceType.None or Enum.HumanoidDisplayDistanceType.Viewer
-        end
+-- 2. NÚT DẤU CỘNG KÉO THẢ
+local openBtn = Instance.new("TextButton", sg)
+openBtn.Size, openBtn.Position = UDim2.new(0, 50, 0, 50), UDim2.new(0, 10, 0.5, -25)
+openBtn.BackgroundColor3, openBtn.Text = Color3.fromRGB(200, 160, 0), "+"
+openBtn.TextColor3, openBtn.TextSize = Color3.new(1, 1, 1), 30
+openBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", openBtn)
+
+local dragging, dragStart, startPos
+openBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging, dragStart, startPos = true, input.Position, openBtn.Position
+        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
     end
-    return _G.SuperInvis
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        openBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- 3. MENU CHÍNH
+local main = Instance.new("Frame", sg)
+main.Size, main.Position = UDim2.new(0, 200, 0, 220), UDim2.new(0, 70, 0.5, -110)
+main.BackgroundColor3, main.Visible = Color3.fromRGB(20, 20, 20), false
+Instance.new("UICorner", main)
+
+local bar = Instance.new("Frame", main)
+bar.Size, bar.BackgroundColor3 = UDim2.new(1, 0, 0, 35), Color3.fromRGB(40, 40, 40)
+Instance.new("UICorner", bar)
+
+local hideBtn = Instance.new("TextButton", bar)
+hideBtn.Text, hideBtn.Size, hideBtn.Position = "-", UDim2.new(0.2, 0, 1, 0), UDim2.new(0.6, 0, 0, 0)
+hideBtn.TextColor3, hideBtn.BackgroundTransparency = Color3.new(1,1,1), 1
+
+local closeBtn = Instance.new("TextButton", bar)
+closeBtn.Text, closeBtn.Size, closeBtn.Position = "X", UDim2.new(0.2, 0, 1, 0), UDim2.new(0.8, 0, 0, 0)
+closeBtn.TextColor3, closeBtn.BackgroundTransparency = Color3.new(1,0,0), 1
+
+openBtn.MouseButton1Click:Connect(function() if not dragging then main.Visible = not main.Visible end end)
+hideBtn.MouseButton1Click:Connect(function() main.Visible = false end)
+closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
+
+-- 4. TẠO NÚT VỚI THÔNG BÁO XẾP HÀNG
+local function createBtn(text, yPos, varName, func)
+    local btn = Instance.new("TextButton", main)
+    btn.Text = text..": OFF"
+    btn.Size, btn.Position = UDim2.new(0, 180, 0, 45), UDim2.new(0, 10, 0, yPos)
+    btn.BackgroundColor3, btn.TextColor3 = Color3.fromRGB(45, 45, 45), Color3.new(1, 1, 1)
+    Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function()
+        _G[varName] = not _G[varName]
+        if func then func(_G[varName]) end
+        btn.Text = text..(_G[varName] and ": ON" or ": OFF")
+        btn.BackgroundColor3 = _G[varName] and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(45, 45, 45)
+        notify(text .. " da " .. (_G[varName] and "BAT" or "TAT"))
+    end)
 end
 
+-- Logic treo máy
 task.spawn(function()
-    while true do
+    while task.wait(1.5) do
         if _G.AutoChest and player.Character then
             for _, v in pairs(workspace:GetChildren()) do
                 if v.Name:find("Chest") and v:IsA("Part") then
@@ -123,31 +106,15 @@ task.spawn(function()
                 end
             end
         end
-        task.wait(0.5)
     end
 end)
 
--- 5. PHÍM TẮT E VÀ R
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if input.KeyCode == Enum.KeyCode.E then
-        _G.HakiE = not _G.HakiE
-        game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Haki E", Text = _G.HakiE and "Bật Soi & Né" or "Tắt", Duration = 2})
-    elseif input.KeyCode == Enum.KeyCode.R and not gpe then
-        if tick() - lastTeleport >= 5 and mouse.Hit then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.p + Vector3.new(0, 3, 0))
-            lastTeleport = tick()
+createBtn("Auto Rương", 55, "AutoChest")
+createBtn("Tàng Hình", 115, "SuperInvis", function(s)
+    local char = player.Character
+    if char then
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") or v:IsA("Decal") then v.Transparency = s and 1 or 0 end
         end
     end
 end)
-
-RunService.Stepped:Connect(function()
-    if _G.HakiE and player.Character then
-        for _, v in pairs(player.Character:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
-    end
-end)
-
--- Tạo nút bấm trên Menu
-createBtn("Auto Rương", UDim2.new(0, 10, 0, 50), function() _G.AutoChest = not _G.AutoChest return _G.AutoChest end)
-createBtn("Tàng Hình 100%", UDim2.new(0, 10, 0, 110), toggleSuperInvis)
